@@ -9,8 +9,8 @@ type Product struct {
 	AverageRating float32  `json:"averageRating" gorm:"-"`
 	Reviews       []Review `json:"reviews" gorm:"foreignKey:ProductId`
 	Images        []Image  `json:"images" gorm:"foreignKey:ImageId`
-	CreatedAt     uint32   `json:"createdAt"`
-	ModifiedAt    uint32   `json:"modifiedAt"`
+	CreatedAt     int64    `json:"createdAt" gorm:"autoUpdateTime:milli"`
+	ModifiedAt    int64    `json:"modifiedAt" gorm:"autoUpdateTime:milli"`
 }
 
 func (p *Product) TableName() string {

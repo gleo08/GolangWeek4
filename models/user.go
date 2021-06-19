@@ -12,8 +12,8 @@ type User struct {
 	Phone      string `json:"phone"`
 	Birthday   string `json:"birthday"`
 	Status     bool   `json:"status"`
-	CreatedAt  uint32 `json:"createdAt"`
-	ModifiedAt uint32 `json:"modifiedAt"`
+	CreatedAt  int64  `json:"createdAt" gorm:"autoUpdateTime:milli"`
+	ModifiedAt int64  `json:"modifiedAt" gorm:"autoUpdateTime:milli"`
 }
 
 func (u *User) TableName() string {

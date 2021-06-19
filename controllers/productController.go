@@ -14,7 +14,7 @@ func GetAllProducts(c *fiber.Ctx) error {
 	database.DB.Preload("Images").Preload("Reviews").Find(&products)
 	for i, _ := range products {
 		var sum float32 = 0
-		var count = 0
+		var count float32 = 0
 		for _, review := range products[i].Reviews {
 			sum += review.Rating
 			count++
@@ -23,11 +23,31 @@ func GetAllProducts(c *fiber.Ctx) error {
 		if sum == 0 || count == 0 {
 			averageRating = 0
 		} else {
-			averageRating = sum / (float32(count))
+			averageRating = sum / count
 		}
 		products[i].AverageRating = averageRating
 	}
 	return c.JSON(products)
+}
+
+func GetProductById(c *fiber.Ctx) error {
+	id, _ := c.ParamsInt("id")
+	var product models.Product
+	database.DB.Preload("Images").Preload("Reviews").Where("id = ?", id).First(&product)
+	var sum float32 = 0
+	var count float32 = 0
+	for _, review := range product.Reviews {
+		sum += review.Rating
+		count++
+	}
+	var averageRating float32
+	if sum == 0 || count == 0 {
+		averageRating = 0
+	} else {
+		averageRating = sum / count
+	}
+	product.AverageRating = averageRating
+	return c.JSON(product)
 }
 
 func CreateProduct(c *fiber.Ctx) error {
@@ -68,17 +88,13 @@ func UpdateInfoProductById(c *fiber.Ctx) error {
 			"message": "Cannot find product",
 		})
 	}
+	oldValue := product.Price
 	database.DB.Model(&product).Updates(&models.Product{Price: input.Price})
-	var priceExist models.Price
-	database.DB.Where("product_id = ? AND value = ?", id, input.Price).First(&priceExist)
-	fmt.Println(priceExist)
-	if priceExist.Id == 0 {
-		newPrice := models.Price{
-			ProductId: id,
-			Value:     input.Price,
-		}
-		database.DB.Create(&newPrice)
+	oldPrice := models.Price{
+		ProductId: id,
+		Value:     oldValue,
 	}
+	database.DB.Create(&oldPrice)
 	return c.JSON(product)
 }
 
@@ -86,6 +102,6 @@ func DeleteProductById(c *fiber.Ctx) error {
 	id, _ := c.ParamsInt("id")
 	database.DB.Exec("DELETE FROM product WHERE id = ?", id)
 	return c.JSON(fiber.Map{
-		"message": "Delete Successfully",
+		"message": "Successfully",
 	})
 }
